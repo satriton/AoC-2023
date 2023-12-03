@@ -1,4 +1,4 @@
-use std::fs::read_to_string;
+use std::{fs::read_to_string, collections::HashMap};
 
 fn main() {
     let lines: Vec<String> = read_to_string("src/input.txt") 
@@ -9,7 +9,10 @@ fn main() {
 
     let mut result: i32 = 0;
     for line in lines {
-        result += extract_code_from_string(line);
+        //part 1
+        // result += extract_code_from_string(line);
+        //part 2
+        result += extract_code_from_string(convert_written_digits_to_number(line));
     }
 
     println!("{result}");
@@ -35,9 +38,19 @@ fn extract_first_and_last_digits(chars: Vec<char>) -> i32 {
     ans.parse().unwrap()
 }
 
+fn convert_written_digits_to_number(string: String) -> String {
+    let accepted_string = HashMap::from([("zero", "z0ero"),("one", "o1ne"),("two", "t2wo"),("three", "t3hree"),("four", "f4our"),("five", "f5ive"),("six", "s6ix"),("seven", "s7even"),("eight", "e8ight"),("nine", "n9ine")]);
+    let mut converted_string = string.clone();
+    for (written_number, converted_number) in accepted_string.iter() {
+        converted_string = converted_string.replace(written_number, converted_number);
+    }
+
+    converted_string.clone()
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::extract_code_from_string;
+    use crate::{extract_code_from_string, convert_written_digits_to_number};
 
     #[test]
     fn should_extract_number_from_line() {
@@ -57,4 +70,15 @@ mod tests {
         assert_eq!(extract_code_from_string(input), 77);
     }
 
+    #[test]
+    fn should_convert_written_digits_to_number() {
+        let input = "zoneight234".to_string();
+        assert_eq!(convert_written_digits_to_number(input), "zo1ne8ight234");
+    }
+
+    #[test]
+    fn should_extract_code_from_written_digits_string() {
+        let input = "zoneight234".to_string();
+        assert_eq!(extract_code_from_string(convert_written_digits_to_number(input)), 14);
+    }
 }
