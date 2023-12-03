@@ -14,6 +14,7 @@ fn main() {
     ]);
 
     let mut sum = 0;
+    let mut power_sum = 0;
     for line in lines {
         let mut colors_count = HashMap::from([
             ("red".to_string(), 0),
@@ -25,12 +26,19 @@ fn main() {
         let game_number = extract_game_number(parts.next().unwrap().to_string());
         process_sets(parts.next().unwrap().to_string(), &mut colors_count);
 
+        // part 1
         if check_possible_bag(&actual, &colors_count) {
             sum += game_number;
         }
+
+        // part 2
+        power_sum += colors_count.get("red").unwrap()
+            * colors_count.get("blue").unwrap()
+            * colors_count.get("green").unwrap();
     }
 
-    println!("{sum}")
+    println!("Sum = {sum}");
+    println!("Power Sum = {power_sum}");
 }
 
 fn check_possible_bag(actual: &HashMap<String, i32>, colors_count: &HashMap<String, i32>) -> bool {
