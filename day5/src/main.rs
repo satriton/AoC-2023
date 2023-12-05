@@ -1,4 +1,4 @@
-use std::fs::read_to_string;
+use std::{fs::read_to_string, ops::Range, cmp};
 
 #[derive(Debug, PartialEq)]
 struct MapEntry {
@@ -6,6 +6,7 @@ struct MapEntry {
     source: i64,
     range_length: i64,
 }
+
 fn main() {
     let mut lines: Vec<String> = read_to_string("src/input.txt") 
         .unwrap()
@@ -13,9 +14,40 @@ fn main() {
         .map(String::from)
         .collect();
 
-    let seeds: Vec<i64>  = extract_seeds(lines.remove(0));
-
+    // Part 1
+    let min_location = compute_part_1(&mut lines.clone());
+    
+    // Part 2
+    let ranges: Vec<Range<i64>> = extract_ranges_part_2(lines.remove(0));
     let maps = extract_maps(&mut lines);
+    
+    let mut min_location_2 = i64::MAX;
+    for range in ranges {
+        min_location_2 = cmp::min(min_location_of_range(range, &maps), min_location_2);
+        println!("min of range: {min_location_2}");
+    } 
+
+    println!("Part 1: {}", min_location);
+    println!("Part 2: {}", min_location_2);
+}
+
+fn min_location_of_range(range: Range<i64>, maps: &Vec<Vec<MapEntry>>) -> i64 {
+    let mut min_location = i64::MAX;
+    for seed in range {
+        let mut number = seed as i64;
+        for map in maps {
+            number = convert_number_with_map(number, map);
+        }
+        min_location = cmp::min(number, min_location);
+    }
+
+    min_location
+}
+
+fn compute_part_1(lines: &mut Vec<String>) -> i64 {
+    let seeds: Vec<i64> = extract_seeds(lines.remove(0));
+
+    let maps = extract_maps(lines);
 
     let mut locations = Vec::new();
     for seed in seeds {
@@ -26,7 +58,7 @@ fn main() {
         locations.push(number);
     }
 
-    println!("{}", locations.iter().min().unwrap());
+    *locations.iter().min().unwrap()
 }
 
 fn extract_maps(lines: &mut Vec<String>) -> Vec<Vec<MapEntry>> {
@@ -58,6 +90,19 @@ fn extract_seeds(string: String) -> Vec<i64> {
     seeds
 }
 
+fn extract_ranges_part_2(string: String) -> Vec<Range<i64>> {
+    let parts = string.split(": ").last().unwrap().split_whitespace();
+
+    let seeds: Vec<i64> = parts.map(|elem| elem.parse::<i64>().unwrap()).collect();
+    let mut ranges = Vec::new();
+    for i in (0..seeds.len()).step_by(2) {
+        let range = seeds[i]..seeds[i] + seeds[i+1] - 1;
+        ranges.push(range);
+    }
+
+    ranges
+}
+
 fn extract_map_entry(string: String) -> MapEntry {
     let mut parts = string.split_whitespace();
     MapEntry { destination: parts.next().unwrap().parse().unwrap(), source: parts.next().unwrap().parse().unwrap(), range_length: parts.next().unwrap().parse().unwrap() }
@@ -75,7 +120,7 @@ fn convert_number_with_map(source_number: i64, map: &Vec<MapEntry>) -> i64{
 
 #[cfg(test)]
 mod tests {
-    use crate::{MapEntry, extract_map_entry, extract_seeds, convert_number_with_map};
+    use crate::{MapEntry, extract_map_entry, extract_seeds, convert_number_with_map, extract_ranges_part_2};
 
     #[test]
     fn should_extract_map_entry() {
@@ -107,5 +152,14 @@ mod tests {
         let map = vec![MapEntry{destination: 50, source: 98, range_length:2}, MapEntry{destination: 52, source: 50, range_length:48}];
 
         assert_eq!(convert_number_with_map(79, &map), 81);
+    }
+
+    #[test]
+    fn should_extract_ranges_part_2() {
+        let expect= vec![79..81, 12..16];
+
+        let input = "seeds: 79 3 12 5".to_string();
+
+        assert_eq!(extract_ranges_part_2(input), expect);
     }
 }
