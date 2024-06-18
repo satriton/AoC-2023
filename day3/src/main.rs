@@ -120,6 +120,11 @@ fn extract_number_from_line(line: &String) -> Vec<Number> {
     numbers
 }
 
+fn extract_schematic_number_from_line(string: String) -> Vec<SchematicNumber> {
+    for char in string.chars() {}
+    Vec::new()
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{
